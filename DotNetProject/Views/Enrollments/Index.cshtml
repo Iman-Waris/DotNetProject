@@ -1,0 +1,58 @@
+﻿@model IEnumerable<DotNetProject.Entities.Enrollments>
+
+@{
+	ViewData["Title"] = "Enrollments Index";
+}
+
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+	<a asp-action="Create">Create New Enrollment</a>
+
+
+</p>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.First().StudentId)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.First().CourseId)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.First().Grade)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.First().EnrollmentDate)
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.StudentId)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.CourseId)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Grade)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.EnrollmentDate)
+				</td>
+				<td>
+					<a asp-action="Edit" asp-route-id="@item.EnrollmentId">Edit</a> |
+					<a asp-action="Details" asp-route-id="@item.EnrollmentId">Details</a> |
+					<a asp-action="Delete" asp-route-id="@item.EnrollmentId">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+
+</table>

@@ -1,0 +1,135 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Students</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.TotalStudents</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Total Courses</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.TotalCourses</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Total Enrollments</div>
+            <div class="card-body">
+                <h5 class="card-title">@ViewBag.TotalEnrollments</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Avg Students per Course</div>
+            <div class="card-body">
+                <h5 class="card-title">@String.Format("{0:N2}", ViewBag.AvgStudentsPerCourse)</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Top 5 Students</h3>
+<table class="table table-bordered mb-4">
+    <thead>
+        <tr>
+            <th>Student Name</th>
+            <th>Enrollments</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in ViewBag.TopStudents)
+        {
+            <tr>
+                <td>@s.Name</td>
+                <td>@s.Count</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Recent Students (Last 7 Days)</h3>
+<table class="table table-bordered mb-4">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Enrollment Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in ViewBag.RecentStudents)
+        {
+            <tr>
+                <td>@(s.FirstName + " " + s.LastName)</td>
+                <td>@s.EnrollmentDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Popular Courses (Top 5 by Enrollments)</h3>
+<table class="table table-bordered mb-4">
+    <thead>
+        <tr>
+            <th>Course Name</th>
+            <th>Enrollments</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in ViewBag.PopularCourses)
+        {
+            <tr>
+                <td>@c.CourseName</td>
+                <td>@c.EnrollmentCount</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Course Average Grades</h3>
+<table class="table table-bordered mb-4">
+    <thead>
+        <tr>
+            <th>Course Id</th>
+            <th>Avg Grade (4=A,3=B,2=C,1=D)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in ViewBag.CourseAvgGrades)
+        {
+            <tr>
+                <td>@c.CourseId</td>
+                <td>@String.Format("{0:N2}", c.AvgGrade)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Grade Distribution</h3>
+<table class="table table-bordered mb-4">
+    <thead>
+        <tr>
+            <th>Grade</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var g in ViewBag.GradeDistribution)
+        {
+            <tr>
+                <td>@g.Grade</td>
+                <td>@g.Count</td>
+            </tr>
+        }
+    </tbody>
+</table>
