@@ -1,4 +1,5 @@
-﻿using DotNetProject.DataFolder;
+﻿using DotNetProject.Data_Access.Interfaces;
+using DotNetProject.DataFolder;
 using DotNetProject.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,20 +10,30 @@ namespace DotNetProject.Controllers
     {
 
         private readonly AppDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public StudentsController(AppDbContext context)
+        public StudentsController(AppDbContext context, IUnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
+
+        //public async Task<IActionResult> Index()
+        //{
+        //    var students = await _unitOfWork.StudentRepository.ToListAsync();
+        //    return View(students);
+        //}
 
         public async Task<IActionResult> Index()
         {
             var students = await _context.Students.ToListAsync();
             return View(students);
+
         }
+
         public async Task<IActionResult> Details(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _unitOfWork.StudentRepository.GetByIdAsync(id);
             if (student == null)
             {
                 return NotFound();
@@ -38,7 +49,7 @@ namespace DotNetProject.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Students student)
         {
-            var EmailExists = await _context.Students
+            var EmailExists = await _unitOfWork.StudentRepository
                         .AnyAsync(s => s.Email == student.Email && s.StudentId != student.StudentId);
 
             if (EmailExists)
@@ -48,8 +59,8 @@ namespace DotNetProject.Controllers
             }
             if (ModelState.IsValid)
             {
-                await _context.Students.AddAsync(student);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.StudentRepository.AddAsync(student);
+                await _unitOfWork.CommitAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(student);
@@ -57,7 +68,7 @@ namespace DotNetProject.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _unitOfWork.StudentRepository.GetByIdAsync(id);
             if (student == null)
             {
                 return NotFound();
@@ -73,7 +84,7 @@ namespace DotNetProject.Controllers
             {
                 return View(model);
             }
-            var EmailExists = await _context.Students
+            var EmailExists = await _unitOfWork.StudentRepository
                             .AnyAsync(s => s.Email == model.Email && s.StudentId != model.StudentId);
 
             if (EmailExists)
@@ -82,14 +93,14 @@ namespace DotNetProject.Controllers
                 return View(model);
             }
             _context.Update(model);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
             return RedirectToAction(nameof(Index));
         }
 
 
         public async Task<IActionResult> Delete(int id)
         {
-            var students = await _context.Students.FindAsync(id);
+            var students = await _unitOfWork.StudentRepository.GetByIdAsync(id);
             if (students == null) return NotFound();
             return View(students);
         }
@@ -98,13 +109,13 @@ namespace DotNetProject.Controllers
 
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _unitOfWork.StudentRepository.GetByIdAsync(id);
             if (student == null)
             {
                 return NotFound();
             }
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
+            _unitOfWork.StudentRepository.Delete(student);
+            await _unitOfWork.CommitAsync();
             return RedirectToAction(nameof(Index));
         }
     }

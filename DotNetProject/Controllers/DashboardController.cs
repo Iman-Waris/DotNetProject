@@ -1,4 +1,5 @@
-﻿using DotNetProject.DataFolder;
+﻿using DotNetProject.Data_Access.Interfaces;
+using DotNetProject.DataFolder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,22 +9,28 @@ namespace DotNetProject.Controllers
 
     {
         private readonly AppDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DashboardController(AppDbContext context)
-        { _context = context; }
+        public DashboardController(AppDbContext context, IUnitOfWork unitOfWork)
+        {
+            _context = context;
+            _unitOfWork = unitOfWork;
+
+
+        }
         public async Task<IActionResult> Index()
 
         {
-            ViewBag.TotalStudents = await _context.Students.CountAsync();
-            ViewBag.TotalCourses = await _context.Courses.CountAsync();
-            ViewBag.TotalEnrollments = await _context.Enrollments.CountAsync();
+            ViewBag.TotalStudents = await _unitOfWork.StudentRepository.CountAsync();
+            ViewBag.TotalCourses = await _unitOfWork.StudentRepository.CountAsync();
+            ViewBag.TotalEnrollments = await _unitOfWork.EnrollmentRepository.CountAsync();
             ViewBag.AvgStudentsPerCourse =
             (ViewBag.TotalCourses == 0 ? 0 :
             (double)ViewBag.TotalEnrollments / ViewBag.TotalCourses);
 
             // ///////////////////////////////5)
 
-            ViewBag.TopStudents = await _context.Enrollments
+            ViewBag.TopStudents = await _unitOfWork.EnrollmentRepository
             .GroupBy(e => e.StudentId)
             .Select(g => new { StudentId = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -42,7 +49,7 @@ namespace DotNetProject.Controllers
 
 
             DateOnly fromDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-7));
-            ViewBag.RecentStudents = await _context.Students
+            ViewBag.RecentStudents = await _unitOfWork.StudentRepository
                 .Where(s => s.EnrollmentDate >= fromDate)
                 .OrderByDescending(s => s.EnrollmentDate)
                 .Take(5)
@@ -51,22 +58,22 @@ namespace DotNetProject.Controllers
 
             ///////////
 
-            ViewBag.PopularCourses = await _context.Enrollments
-        .GroupBy(e => e.CourseId)
-        .Select(g => new
-        {
-            CourseId = g.Key,
-            EnrollmentCount = g.Count()
-        })
+            ViewBag.PopularCourses = await _unitOfWork.EnrollmentRepository
+           .GroupBy(e => e.CourseId)
+           .Select(g => new
+           {
+               CourseId = g.Key,
+               EnrollmentCount = g.Count()
+           })
         .Join(_context.Courses, g => g.CourseId, c => c.CourseId, (g, c) => new
         {
             c.CourseId,
             c.CourseName,
             g.EnrollmentCount
         })
-        .OrderByDescending(x => x.EnrollmentCount)
-        .Take(5)
-        .ToListAsync();
+           .OrderByDescending(x => x.EnrollmentCount)
+           .Take(5)
+           .ToListAsync();
 
 
 
@@ -74,7 +81,7 @@ namespace DotNetProject.Controllers
             ////////////////////////////
 
 
-            ViewBag.CourseAvgGrades = await _context.Enrollments
+            ViewBag.CourseAvgGrades = await _unitOfWork.EnrollmentRepository
          .Where(e => e.Grade != null)
        .GroupBy(e => e.CourseId)
           .Select(g => new
@@ -91,7 +98,7 @@ namespace DotNetProject.Controllers
 
             //////////////////////
 
-            ViewBag.GradeDistribution = await _context.Enrollments
+            ViewBag.GradeDistribution = await _unitOfWork.EnrollmentRepository
                 .Where(e => e.Grade != null)
                 .GroupBy(e => e.Grade)
                 .Select(g => new

@@ -1,23 +1,25 @@
-﻿using DotNetProject.DataFolder;
+﻿using DotNetProject.Data_Access.Interfaces;
+using DotNetProject.DataFolder;
 using DotNetProject.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DotNetProject.Controllers
 {
     public class CoursesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CoursesController(AppDbContext context)
+        public CoursesController(AppDbContext context, IUnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IActionResult> Index()
         {
 
-            var courses = await _context.Courses.ToListAsync();
+            var courses = await _unitOfWork.CourseRepository.ToListAsync();
             return View(courses);
 
         }
@@ -25,7 +27,7 @@ namespace DotNetProject.Controllers
         public async Task<IActionResult> Details(int id)
         {
 
-            var courses = await _context.Courses.FindAsync(id);
+            var courses = await _unitOfWork.CourseRepository.GetByIdAsync(id);
             if (courses == null)
             {
                 return NotFound();
@@ -42,8 +44,15 @@ namespace DotNetProject.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Create(Courses course)
+
         {
-            var CourseCodeExists = await _context.Courses
+
+            if (!ModelState.IsValid)
+            {
+                return View(course);
+            }
+
+            var CourseCodeExists = await _unitOfWork.CourseRepository
                          .AnyAsync(s => s.CourseCode == course.CourseCode && s.CourseId != course.CourseId);
 
             if (CourseCodeExists)
@@ -53,8 +62,8 @@ namespace DotNetProject.Controllers
             }
             if (ModelState.IsValid)
             {
-                await _context.Courses.AddAsync(course);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.CourseRepository.AddAsync(course);
+                await _unitOfWork.CommitAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(course);
@@ -65,7 +74,7 @@ namespace DotNetProject.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _unitOfWork.CourseRepository.GetByIdAsync(id);
             if (course == null)
             {
                 return NotFound();
@@ -82,7 +91,7 @@ namespace DotNetProject.Controllers
             {
                 return View(model);
             }
-            var CourseCodeExists = await _context.Courses
+            var CourseCodeExists = await _unitOfWork.CourseRepository
                         .AnyAsync(s => s.CourseCode == model.CourseCode && s.CourseId != model.CourseId);
 
             if (CourseCodeExists)
@@ -90,23 +99,15 @@ namespace DotNetProject.Controllers
                 ModelState.AddModelError("CourseCode", "CourseCode must be unique");
                 return View(model);
             }
-            _context.Update(model);
-            await _context.SaveChangesAsync();
+            _unitOfWork.CourseRepository.Update(model);
+            await _unitOfWork.CommitAsync();
 
             return RedirectToAction(nameof(Index));
         }
-        //var DuplicateEnrollment = await _context.Enrollments
-        //        .AnyAsync(e => e.StudentId == model.StudentId && e.CourseId == model.CourseId);
-
-        //    if (DuplicateEnrollment)
-        //    {
-        //        ModelState.AddModelError("", "This student is already enrolled in the selected course");
-        //    }
-
 
         public async Task<IActionResult> Delete(int id)
         {
-            var courses = await _context.Courses.FindAsync(id);
+            var courses = await _unitOfWork.CourseRepository.GetByIdAsync(id);
             if (courses == null) return NotFound();
             return View(courses);
         }
@@ -117,13 +118,13 @@ namespace DotNetProject.Controllers
 
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _unitOfWork.CourseRepository.GetByIdAsync(id);
             if (course == null)
             {
                 return NotFound();
             }
-            _context.Courses.Remove(course);
-            await _context.SaveChangesAsync();
+            _unitOfWork.CourseRepository.Delete(course);
+            await _unitOfWork.CommitAsync();
             return RedirectToAction(nameof(Index));
         }
     }

@@ -1,3 +1,5 @@
+using DotNetProject.Data_Access.Implementation;
+using DotNetProject.Data_Access.Interfaces;
 using DotNetProject.DataFolder;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,10 +17,18 @@ builder.Services.AddControllersWithViews();
 
 //});
 
+builder.Services.AddDbContext<AppDbContext>(option => option.UseNpgsql(connectionString));
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
 
+//todo
+//builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+builder.Services.AddScoped<DotNetProject.Data_Access.Interfaces.ICourseRepository, DotNetProject.Data_Access.Implementation.CourseRepository>();
+builder.Services.AddScoped<DotNetProject.Data_Access.Interfaces.IStudentRepository, DotNetProject.Data_Access.Implementation.StudentRepository>();
+builder.Services.AddScoped<DotNetProject.Data_Access.Interfaces.IEnrollmentRepository, DotNetProject.Data_Access.Implementation.EnrollmentRepository>();
+
+
+//builder.Services.AddScoped(typeof(IRepository<TEntity, TPrimaryKey>), typeof(Repository<TEntity, TPrimaryKey>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
@@ -33,9 +43,9 @@ if (!app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-//app.UseRouting();
+app.UseRouting();
 
-//app.UseAuthorization();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
